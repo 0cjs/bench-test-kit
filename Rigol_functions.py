@@ -17,16 +17,16 @@ def command(tn, scpi):
     logging.info("SCPI to be sent: " + scpi)
     answer_wait_s = 1
     response = ""
-    while response != "1\n":
+    while response != b"1\n":
         tn.write("*OPC?\n")  # previous operation(s) has completed ?
         logging.info("Send SCPI: *OPC? # May I send a command? 1==yes")
-        response = tn.read_until("\n", 1)  # wait max 1s for an answer
-        logging.info("Received response: " + response)
+        response = tn.read_until(b"\n", 1)  # wait max 1s for an answer
+        logging.info("Received response!")
 
     tn.write(scpi + "\n")
     logging.info("Sent SCPI: " + scpi)
-    response = tn.read_until("\n", answer_wait_s)
-    logging.info("Received response: " + response)
+    response = tn.read_until(b"\n", answer_wait_s)
+    logging.info("Received response!")
     return response
 
 
@@ -36,7 +36,7 @@ def command(tn, scpi):
 #   The integer will be the length of the data stream (in bytes)
 # after all the data bytes, the last char is '\n'
 def tmc_header_bytes(buff):
-    return 2 + int(buff[1])
+    return 2 + int(buff[1:2])
 
 
 def expected_data_bytes(buff):

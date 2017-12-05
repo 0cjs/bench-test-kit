@@ -11,7 +11,7 @@ Example:
 >>> from telnetlib import Telnet
 >>> tn = Telnet('www.python.org', 79)   # connect to finger port
 >>> tn.write('guido\r\n')
->>> print tn.read_all()
+>>> print (tn.read_all())
 Login       Name               TTY         Idle    When    Where
 guido    Guido van Rossum      pts/2        <Dec  2 11:10> snag.cnri.reston..
 
@@ -201,13 +201,13 @@ class Telnet:
         self.port = port
         self.timeout = timeout
         self.sock = None
-        self.rawq = ''
+        self.rawq = b''
         self.irawq = 0
-        self.cookedq = ''
+        self.cookedq = b''
         self.eof = 0
-        self.iacseq = '' # Buffer for IAC sequence.
+        self.iacseq = b'' # Buffer for IAC sequence.
         self.sb = 0 # flag for SB and SE sequence.
-        self.sbdataq = ''
+        self.sbdataq = b''
         self.option_callback = None
         self._has_poll = hasattr(select, 'poll')
         if host is not None:
@@ -241,11 +241,11 @@ class Telnet:
 
         """
         if self.debuglevel > 0:
-            print 'Telnet(%s,%s):' % (self.host, self.port),
+            print ('Telnet(%s,%s):' % (self.host, self.port),)
             if args:
-                print msg % args
+                print (msg % args)
             else:
-                print msg
+                print (msg)
 
     def set_debuglevel(self, debuglevel):
         """Set the debug level.
@@ -260,7 +260,7 @@ class Telnet:
         sock = self.sock
         self.sock = 0
         self.eof = 1
-        self.iacseq = ''
+        self.iacseq = b''
         self.sb = 0
         if sock:
             sock.close()
@@ -283,7 +283,7 @@ class Telnet:
         if IAC in buffer:
             buffer = buffer.replace(IAC, IAC+IAC)
         self.msg("send %r", buffer)
-        self.sock.sendall(buffer)
+        self.sock.sendall(bytes(buffer, 'ascii'))
 
     def read_until(self, match, timeout=None):
         """Read until a given string is encountered or until timeout.
@@ -388,7 +388,7 @@ class Telnet:
             self.fill_rawq()
             self.process_rawq()
         buf = self.cookedq
-        self.cookedq = ''
+        self.cookedq = b''
         return buf
 
     def read_some(self):
@@ -403,7 +403,7 @@ class Telnet:
             self.fill_rawq()
             self.process_rawq()
         buf = self.cookedq
-        self.cookedq = ''
+        self.cookedq = b''
         return buf
 
     def read_very_eager(self):
@@ -453,9 +453,9 @@ class Telnet:
 
         """
         buf = self.cookedq
-        self.cookedq = ''
+        self.cookedq = b''
         if not buf and self.eof and not self.rawq:
-            raise EOFError, 'telnet connection closed'
+            raise EOFError ('telnet connection closed')
         return buf
 
     def read_sb_data(self):
@@ -467,7 +467,7 @@ class Telnet:
 
         """
         buf = self.sbdataq
-        self.sbdataq = ''
+        self.sbdataq = b''
         return buf
 
     def set_option_negotiation_callback(self, callback):
@@ -481,7 +481,7 @@ class Telnet:
         the midst of an IAC sequence.
 
         """
-        buf = ['', '']
+        buf = [b'', b'']
         try:
             while self.rawq:
                 c = self.rawq_getchar()
@@ -501,17 +501,17 @@ class Telnet:
                         self.iacseq += c
                         continue
 
-                    self.iacseq = ''
+                    self.iacseq = b''
                     if c == IAC:
                         buf[self.sb] = buf[self.sb] + c
                     else:
                         if c == SB: # SB ... SE start.
                             self.sb = 1
-                            self.sbdataq = ''
+                            self.sbdataq = b''
                         elif c == SE:
                             self.sb = 0
                             self.sbdataq = self.sbdataq + buf[1]
-                            buf[1] = ''
+                            buf[1] = b''
                         if self.option_callback:
                             # Callback is supposed to look into
                             # the sbdataq
@@ -523,7 +523,7 @@ class Telnet:
                             self.msg('IAC %d not recognized' % ord(c))
                 elif len(self.iacseq) == 2:
                     cmd = self.iacseq[1]
-                    self.iacseq = ''
+                    self.iacseq = b''
                     opt = c
                     if cmd in (DO, DONT):
                         self.msg('IAC %s %d',
@@ -531,16 +531,16 @@ class Telnet:
                         if self.option_callback:
                             self.option_callback(self.sock, cmd, opt)
                         else:
-                            self.sock.sendall(IAC + WONT + opt)
+                            self.sock.sendall(bytes(IAC + WONT + opt, 'ascii'))
                     elif cmd in (WILL, WONT):
                         self.msg('IAC %s %d',
                             cmd == WILL and 'WILL' or 'WONT', ord(opt))
                         if self.option_callback:
                             self.option_callback(self.sock, cmd, opt)
                         else:
-                            self.sock.sendall(IAC + DONT + opt)
+                            self.sock.sendall(bytes(IAC + DONT + opt, 'ascii'))
         except EOFError: # raised by self.rawq_getchar()
-            self.iacseq = '' # Reset on EOF
+            self.iacseq = b'' # Reset on EOF
             self.sb = 0
             pass
         self.cookedq = self.cookedq + buf[0]
@@ -557,10 +557,10 @@ class Telnet:
             self.fill_rawq()
             if self.eof:
                 raise EOFError
-        c = self.rawq[self.irawq]
+        c = self.rawq[self.irawq:self.irawq+1]
         self.irawq = self.irawq + 1
         if self.irawq >= len(self.rawq):
-            self.rawq = ''
+            self.rawq = b''
             self.irawq = 0
         return c
 
@@ -572,7 +572,7 @@ class Telnet:
 
         """
         if self.irawq >= len(self.rawq):
-            self.rawq = ''
+            self.rawq = b''
             self.irawq = 0
         # The buffer size should be fairly small so as to avoid quadratic
         # behavior in process_rawq() above
@@ -596,7 +596,7 @@ class Telnet:
                 try:
                     text = self.read_eager()
                 except EOFError:
-                    print '*** Connection closed by remote host ***'
+                    print ('*** Connection closed by remote host ***')
                     break
                 if text:
                     sys.stdout.write(text)
@@ -623,7 +623,7 @@ class Telnet:
             try:
                 data = self.read_eager()
             except EOFError:
-                print '*** Connection closed by remote host ***'
+                print ('*** Connection closed by remote host ***')
                 return
             if data:
                 sys.stdout.write(data)
