@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from telnetlib_receive_all import Telnet
 from Rigol_functions import *
