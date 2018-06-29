@@ -149,7 +149,10 @@ print ("Instrument ID:", instrument_id)
 
 # Prepare filename as C:\MODEL_SERIAL_YYYY-MM-DD_HH.MM.SS
 timestamp = time.strftime("%Y-%m-%d_%H.%M.%S", time.localtime())
-filename = path_to_save + id_fields[model] + "_" + id_fields[serial] + "_" + timestamp
+if len(sys.argv) > 3:
+    filename = sys.argv[3]
+else:
+    filename = path_to_save + id_fields[model] + "_" + id_fields[serial] + "_" + timestamp + "." + file_format
 
 if file_format in ["png", "bmp"]:
     # Ask for an oscilloscope display print screen
@@ -182,10 +185,9 @@ if file_format in ["png", "bmp"]:
     buff = buff[tmcHeaderLen: tmcHeaderLen+expectedDataLen]
 
     # Write raw data to file
-    full_file_name = filename + '.' + file_format
-    with open(full_file_name, 'wb') as f:
+    with open(filename, 'wb') as f:
     	f.write(buff)
-    print('Saved raw data to {}'.format(full_file_name))
+    print('Saved raw data to {}'.format(filename))
 
 # TODO: Change WAV:FORM from ASC to BYTE
 elif file_format == "csv":
@@ -276,10 +278,10 @@ elif file_format == "csv":
                     csv_buff += "," + str(point) + os.linesep
 
     # Save data as CSV
-    scr_file = open(filename + "." + file_format, "wb")
+    scr_file = open(filename, "wb")
     scr_file.write(csv_buff)
     scr_file.close()
 
-    print ("Saved file:", "'" + filename + "." + file_format + "'")
+    print ("Saved file:", "'" + filename + "'")
 
 tn.close()
