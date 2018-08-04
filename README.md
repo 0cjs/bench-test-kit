@@ -9,21 +9,18 @@ The computer and the oscilloscope are connected together by a LAN (Local Area Ne
 
 Tested with Linux Ubuntu 18.04, Python 3.6.
 
-User Manual:
------------
-This program captures either the waveform or the whole screen
-    of a Rigol DS1000Z series oscilloscope, then save it on the computer
-    as a CSV, PNG or BMP file with a timestamp in the file name.
+## User Manual
+This program captures either the waveform or the whole screen of a Rigol DS1000Z series oscilloscope, then save it on the computer as a CSV, PNG or BMP file with a timestamp in the file name.
 
-    The program is using LXI protocol, so the computer must have a LAN connection with the oscilloscope.
+The program is using LXI protocol, so the computer must have a LAN connection with the oscilloscope.
 
-    If an IP is not specified, the program will poll the ARP table for a Rigol hardware address.
+If an IP is not specified, the program will poll the ARP table for a Rigol hardware address.
 
-Usage syntax:
+#### Usage syntax:
 
     ds1054-capture [png|bmp|csv] [oscilloscope_IP]
 
-Usage examples:
+#### Usage examples:
 
     ds1054-capture
     ds1054-capture csv
