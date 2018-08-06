@@ -1,19 +1,40 @@
-import logging
+import sys
+import requests
+import subprocess
+
+INSTRUMENT_OUI = "00:19:af"
+
+def find_arp():
+    global INSTRUMENT_OUI
+    result = subprocess.check_output("arp -n | grep '%s' | awk '{print $1}'" % (INSTRUMENT_OUI), shell=True)
+    result_string = result.decode("utf-8").strip()
+    if not result_string:
+        return None
+    return result_string
+
+def dm3058_screenshot(instrument_ip, output_filename):
+    with open(output_filename, "wb") as f:
+        response = requests.head("http://%s/DM3058_WebControl.html" % (instrument_ip))
+        if response.status_code != 200:
+            return None
+        response = requests.get("http://%s/pictures/Display.bmp" % (instrument_ip), stream=True)
+        if response.status_code != 200:
+            return None
+
+        total_length = int(response.headers.get('content-length'))
+        f.write(response.content)
+
+    return total_length
 
 def command(tn, scpi):
-    logging.info("SCPI to be sent: " + scpi)
     answer_wait_s = 1
     response = ""
     while response != b"1\n":
         tn.write("*OPC?\n")  # previous operation(s) has completed ?
-        logging.info("Send SCPI: *OPC? # May I send a command? 1==yes")
         response = tn.read_until(b"\n", 1)  # wait max 1s for an answer
-        logging.info("Received response!")
 
     tn.write(scpi + "\n")
-    logging.info("Sent SCPI: " + scpi)
     response = tn.read_until(b"\n", answer_wait_s)
-    logging.info("Received response!")
     return response
 
 

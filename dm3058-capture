@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+#from telnetlib_receive_all import Telnet
+from rigol import *
+import time
+import sys
+import os
+
+script_name = os.path.basename(sys.argv[0])
+filepath = os.getcwd()
+
+def print_help():
+    global script_name
+    print ("Usage:")
+    print ("    " + script_name + " [psu_ip]")
+    print ()
+    print ("Usage examples:")
+    print ("    " + script_name)
+    print ("    " + script_name + " 192.168.1.3")
+    print ()
+    print ("This program captures the screen of the multimeter")
+    print ("    as a BMP file with a timestamp in the file name.")
+    print ()
+
+if len(sys.argv) == 1:
+    INSTRUMENT_IP = find_arp()
+    if INSTRUMENT_IP is None:
+        sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
+elif len(sys.argv) == 2:
+	INSTRUMENT_IP = sys.argv[1]
+else:
+    print_help()
+    sys.exit("Error: Wrong command line parameters.")
+
+# Check network response (ping)
+if os.system("ping -c 1 " + INSTRUMENT_IP + " > /dev/null") != 0:
+    sys.exit("Error: No response pinging address " + INSTRUMENT_IP)
+
+print("Downloading screenshot..")
+
+timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
+filename = "DM3058_%s.bmp" % (timestamp)
+
+file_length = dm3058_screenshot(INSTRUMENT_IP, "%s/%s" % (filepath, filename))
+
+if file_length is not None:
+    print("Saved screenshot to %s (%.1fKB)" % (filename, file_length/1024.0))
+else:
+    print("Download failed.")

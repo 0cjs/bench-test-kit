@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 from telnetlib_receive_all import Telnet
-from rigol_functions import *
+from rigol import *
 import time
 import sys
 import os
-import logging
 import subprocess
 
 __version__ = 'v1.1.0'
@@ -26,6 +25,8 @@ smallWait = 1
 company = 0
 model = 1
 serial = 2
+
+RIGOL_OUI = "00:19:af"
 
 #
 # TODO: Write all SCPI commands in their short name, with capitals
@@ -56,14 +57,6 @@ serial = 2
 # TODO: Create executable distributions
 #
 
-# Set the desired logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename=os.path.basename(sys.argv[0]) + '.log',
-                    filemode='w')
-
-logging.info("***** New run started...")
-
 # Check command line parameters
 script_name = os.path.basename(sys.argv[0])
 
@@ -82,21 +75,20 @@ def print_help():
     print ("    as a CSV, PNG or BMP file with a timestamp in the file name.")
     print ()
 
-def find_rigol_arp():
-    RIGOL_OUI = "00:19:af"
-    result = subprocess.check_output("arp -n | grep '%s' | awk '{print $1}'" % (RIGOL_OUI), shell=True)
+def find_arp(oui):
+    result = subprocess.check_output("arp -n | grep '%s' | awk '{print $1}'" % (oui), shell=True)
     result_string = result.decode("utf-8").strip()
     if not result_string:
         print_help()
-        sys.exit("Error: Rigol Scope not found in ARP table and will have to be specified manually.")
+        sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
     return result_string
 
 if len(sys.argv) == 1:
-    IP_DS1104Z = find_rigol_arp()
+    IP_DS1104Z = find_arp(RIGOL_OUI)
 elif len(sys.argv) == 2:
     if sys.argv[1].lower() in ["png", "bmp", "csv"]:
         file_format = sys.argv[1].lower()
-        IP_DS1104Z = find_rigol_arp()
+        IP_DS1104Z = find_arp(RIGOL_OUI)
     else:
         IP_DS1104Z = sys.argv[1]
 elif len(sys.argv) == 3:
@@ -156,17 +148,12 @@ if file_format in ["png", "bmp"]:
     expectedBuffLen = expected_buff_bytes(buff)
     # Just in case the transfer did not complete in the expected time, read the remaining 'buff' chunks
     while len(buff) < expectedBuffLen:
-        logging.warning("Received LESS data then expected! (" +
-                        str(len(buff)) + " out of " + str(expectedBuffLen) + " expected 'buff' bytes.)")
         tmp = tn.read_until(b"\n", smallWait)
         if len(tmp) == 0:
             break
         buff += tmp
-        logging.warning(str(len(tmp)) + " leftover bytes added to 'buff'.")
 
     if len(buff) < expectedBuffLen:
-        logging.error("After reading all data chunks, 'buff' is still shorter then expected! (" +
-                      str(len(buff)) + " out of " + str(expectedBuffLen) + " expected 'buff' bytes.)")
         sys.exit("ERROR")
 
     # Strip TMC Blockheader and keep only the data
@@ -177,7 +164,7 @@ if file_format in ["png", "bmp"]:
     # Write raw data to file
     with open(filename, 'wb') as f:
     	f.write(buff)
-    print('Saved raw data to {}'.format(filename))
+    print('Saved screenshot to %s (%.1fKB)' % (filename, expectedDataLen/1024.0))
 
 # TODO: Change WAV:FORM from ASC to BYTE
 elif file_format == "csv":
@@ -227,14 +214,10 @@ elif file_format == "csv":
 
         # Just in case the transfer did not complete in the expected time
         while buffChunk[-1] != "\n":
-            logging.warning("The data transfer did not complete in the expected time of " +
-                            str(smallWait) + " second(s).")
-
             tmp = tn.read_until(b"\n", smallWait)
             if len(tmp) == 0:
                 break
             buffChunk += tmp
-            logging.warning(str(len(tmp)) + " leftover bytes added to 'buff_chunks'.")
 
         # Append data chunks
         # Strip TMC Blockheader and terminator bytes
@@ -274,6 +257,6 @@ elif file_format == "csv":
     scr_file.write(csv_buff)
     scr_file.close()
 
-    print ("Saved file:", "'" + filename + "'")
+    print ("Saved data to %s (%.1fKB)" % (filename, len(csv_buff)/1024.0))
 
 tn.close()
