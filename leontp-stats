@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+from leobodnar import *
+from common import *
+
+import os
+import sys
+
+script_name = os.path.basename(sys.argv[0])
+filepath = os.getcwd()
+
+def print_help():
+    global script_name
+    print ("Usage:")
+    print ("    " + script_name + " [server_address]")
+    print ()
+    print ("Usage examples:")
+    print ("    " + script_name)
+    print ("    " + script_name + " 192.168.1.3")
+    print ()
+    print ("This program queries a LeoNTP server with a mode 7")
+    print ("    request, returning server statistics.")
+    print ()
+
+if len(sys.argv) == 1:
+    INSTRUMENT_IP = find_arp(LEOBODNAR_OUI)
+    if INSTRUMENT_IP is None:
+        print_help()
+        sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
+elif len(sys.argv) == 2:
+	INSTRUMENT_IP = sys.argv[1]
+else:
+    print_help()
+    sys.exit("Error: Wrong command line parameters.")
+
+stats = leontp_stats(INSTRUMENT_IP)
+
+if stats is None:
+    sys.exit("Error: Stats Request Failed.")
+
+# actual statistics received from the server
+print ("NTP server: %s" % INSTRUMENT_IP)
+print ("UTC time: %s" % stats.timestamp)
+print ("NTP time: %02.0f" % (stats.ref_ts1 + stats.ref_ts0))
+# derived statistics
+print ("Average load since restart: ~%01.0f requests per second" % (1.0 * stats.NTP_served / stats.uptime))
+print ("NTP requests served: %d" % stats.NTP_served)
+print ("Uptime: %d seconds ( %.2f days )" % (stats.uptime, stats.uptime/86400))
+print ("GPS lock time: %d seconds ( %.2f days )" % (stats.lock_time, stats.lock_time/86400))
+print ("GPS flags: %d" % stats.flags)
+print ("Active satellites: %d" % stats.numSV)
+print ("Firmware version: %x.%02x" % (stats.FW_ver>>8, stats.FW_ver&0xFF))
+print ("Serial number: %d" % stats.ser_num)
