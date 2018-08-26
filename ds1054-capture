@@ -2,6 +2,7 @@
 
 from telnetlib_receive_all import Telnet
 from rigol import *
+from common import *
 import time
 import sys
 import os
@@ -25,8 +26,6 @@ smallWait = 1
 company = 0
 model = 1
 serial = 2
-
-RIGOL_OUI = "00:19:af"
 
 #
 # TODO: Write all SCPI commands in their short name, with capitals

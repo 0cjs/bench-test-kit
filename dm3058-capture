@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-#from telnetlib_receive_all import Telnet
 from rigol import *
+from common import *
 import time
 import sys
 import os
@@ -23,8 +23,9 @@ def print_help():
     print ()
 
 if len(sys.argv) == 1:
-    INSTRUMENT_IP = find_arp()
+    INSTRUMENT_IP = find_arp(RIGOL_OUI)
     if INSTRUMENT_IP is None:
+        print_help()
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
 elif len(sys.argv) == 2:
 	INSTRUMENT_IP = sys.argv[1]

@@ -1,16 +1,7 @@
 import sys
 import requests
-import subprocess
 
-INSTRUMENT_OUI = "80:09:02"
-
-def find_arp():
-    global INSTRUMENT_OUI
-    result = subprocess.check_output("arp -n | grep '%s' | awk '{print $1}'" % (INSTRUMENT_OUI), shell=True)
-    result_string = result.decode("utf-8").strip()
-    if not result_string:
-        return None
-    return result_string
+KEYSIGHT_OUI = "80:09:02"
 
 def e36312a_screenshot(instrument_ip, output_filename):
     with open(output_filename, "wb") as f:
