@@ -5,6 +5,7 @@ from common import *
 import time
 import sys
 import os
+import argparse
 
 script_name = os.path.basename(sys.argv[0])
 filepath = os.getcwd()
@@ -12,7 +13,7 @@ filepath = os.getcwd()
 def print_help():
     global script_name
     print ("Usage:")
-    print ("    " + script_name + " [psu_ip]")
+    print ("    " + script_name + " [dmm_ip]")
     print ()
     print ("Usage examples:")
     print ("    " + script_name)
@@ -22,22 +23,30 @@ def print_help():
     print ("    as a BMP file with a timestamp in the file name.")
     print ()
 
-if len(sys.argv) == 1:
+parser = argparse.ArgumentParser(description='DM3058 Capture.')
+parser.add_argument("ip_address", nargs='?', default=None,
+                    help=("IP address of a network or a host. Can be "
+                          "IPv4 or IPv6 address"))
+parser.add_argument("-I", "--imgur", action='store_true',
+                    help="Upload to Imgur")
+parser.add_argument("-P", "--preview", action='store_true',
+                    help="Preview Image")
+
+args = parser.parse_args()
+
+if args.ip_address is not None:
+    INSTRUMENT_IP = args.ip_address
+else:
     INSTRUMENT_IP = find_arp(RIGOL_OUI)
     if INSTRUMENT_IP is None:
         print_help()
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
-elif len(sys.argv) == 2:
-	INSTRUMENT_IP = sys.argv[1]
-else:
-    print_help()
-    sys.exit("Error: Wrong command line parameters.")
 
 # Check network response (ping)
-if os.system("ping -c 1 " + INSTRUMENT_IP + " > /dev/null") != 0:
+if not instrument_ping(INSTRUMENT_IP):
     sys.exit("Error: No response pinging address " + INSTRUMENT_IP)
 
-print("Downloading screenshot..")
+print("Capturing screenshot..")
 
 timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
 filename = "DM3058_%s.bmp" % (timestamp)
@@ -46,5 +55,9 @@ file_length = dm3058_screenshot(INSTRUMENT_IP, "%s/%s" % (filepath, filename))
 
 if file_length is not None:
     print("Saved screenshot to %s (%.1fKB)" % (filename, file_length/1024.0))
+    if args.preview:
+        image_preview(filename)
+    if args.imgur:
+        imgur_post(filename, "DM3058 Screen Capture")
 else:
-    print("Download failed.")
+    print("Capture failed.")
