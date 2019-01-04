@@ -33,21 +33,31 @@ else:
     print_help()
     sys.exit("Error: Wrong command line parameters.")
 
+sntp = sntp_request(INSTRUMENT_IP)
+
+print ("Target server: %s" % INSTRUMENT_IP)
+
+if sntp is not None:
+	if sntp.stratum != 0:
+		print ("SNTP response: %s" % sntp.timestamp)
+	else:
+		print ("SNTP: KoD response!")
+else:
+	print ("Error: SNTP Request Failed.")
+
 stats = leontp_stats(INSTRUMENT_IP)
 
-if stats is None:
-    sys.exit("Error: Stats Request Failed.")
-
-# actual statistics received from the server
-print ("NTP server: %s" % INSTRUMENT_IP)
-print ("UTC time: %s" % stats.timestamp)
-print ("NTP time: %02.0f" % (stats.ref_ts1 + stats.ref_ts0))
-# derived statistics
-print ("Average load since restart: ~%01.0f requests per second" % (1.0 * stats.NTP_served / stats.uptime))
-print ("NTP requests served: %d" % stats.NTP_served)
-print ("Uptime: %d seconds ( %.2f days )" % (stats.uptime, stats.uptime/86400))
-print ("GPS lock time: %d seconds ( %.2f days )" % (stats.lock_time, stats.lock_time/86400))
-print ("GPS flags: %d" % stats.flags)
-print ("Active satellites: %d" % stats.numSV)
-print ("Firmware version: %x.%02x" % (stats.FW_ver>>8, stats.FW_ver&0xFF))
-print ("Serial number: %d" % stats.ser_num)
+if stats is not None:
+	# actual statistics received from the server
+	print ("NTP response: %s (%d)" % (stats.timestamp, (stats.ref_ts1 + stats.ref_ts0)))
+	# derived statistics
+	print ("Average load since restart: ~%01.0f requests per second" % (1.0 * stats.NTP_served / stats.uptime))
+	print ("NTP requests served: %d" % stats.NTP_served)
+	print ("Uptime: %d seconds ( %.2f days )" % (stats.uptime, stats.uptime/86400))
+	print ("GPS lock time: %d seconds ( %.2f days )" % (stats.lock_time, stats.lock_time/86400))
+	print ("GPS flags: %d" % stats.flags)
+	print ("Active satellites: %d" % stats.numSV)
+	print ("Firmware version: %x.%02x" % (stats.FW_ver>>8, stats.FW_ver&0xFF))
+	print ("Serial number: %d" % stats.ser_num)
+else:
+	print ("Error: Stats Request Failed.")
