@@ -83,7 +83,11 @@ elif args.graph:
     while True:
       sleep(1)
       stats_last = stats_next
-      stats_next = leontp_stats(INSTRUMENT_IP)
+      try:
+        stats_next = leontp_stats(INSTRUMENT_IP)
+      except:
+        print("Request Failed")
+        continue
       r_rate = ((stats_next.NTP_served - stats_last.NTP_served) / ((stats_next.ref_ts1 + stats_next.ref_ts0) - (stats_last.ref_ts1 + stats_last.ref_ts0)))
       rate_scaled = r_rate / scale
       print("%.1f/s: " % (r_rate), end ="")
