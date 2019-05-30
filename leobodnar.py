@@ -55,6 +55,6 @@ def leontp_stats(instrument_ip):
     sock.close()
 
     response.time = gmtime(response.ref_ts1 - TIME1970)
-    response.timestamp = "%d-%02d-%02d %02d:%02d:%02.3f" % (response.time.tm_year, response.time.tm_mon, response.time.tm_mday, response.time.tm_hour, response.time.tm_min, response.time.tm_sec + response.ref_ts0)
+    response.timestamp = "%d-%02d-%02d %02d:%02d:%02d.%03d" % (response.time.tm_year, response.time.tm_mon, response.time.tm_mday, response.time.tm_hour, response.time.tm_min, response.time.tm_sec, round(response.ref_ts0*1000))
 
     return response

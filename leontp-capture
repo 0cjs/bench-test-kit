@@ -5,7 +5,7 @@ from common import *
 
 import os
 import sys
-from time import sleep
+from time import sleep, gmtime, strftime
 import argparse
 
 script_name = os.path.basename(sys.argv[0])
@@ -29,9 +29,11 @@ else:
     if INSTRUMENT_IP is None:
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
 
-sntp = sntp_request(INSTRUMENT_IP)
-
 print ("Target server: %s" % INSTRUMENT_IP)
+
+print("System time: %s" % strftime("%Y-%m-%d %H:%M:%S", gmtime()))
+
+sntp = sntp_request(INSTRUMENT_IP)
 
 if sntp is not None:
   if sntp.stratum != 0:
@@ -52,7 +54,7 @@ if stats is not None:
   print ("NTP requests served: %d" % stats.NTP_served)
   print ("Uptime: %d seconds ( %.2f days )" % (stats.uptime, stats.uptime/86400))
   print ("GPS lock time: %d seconds ( %.2f days )" % (stats.lock_time, stats.lock_time/86400))
-  print ("GPS flags: %d" % stats.flags)
+  print ("GPS flags: 0x%02x" % stats.flags)
   print ("Active satellites: %d" % stats.numSV)
   print ("Firmware version: %x.%02x" % (stats.FW_ver>>8, stats.FW_ver&0xFF))
   print ("Serial number: %d" % stats.ser_num)
@@ -73,9 +75,11 @@ elif args.graph:
     sleep(1)
     stats_next = leontp_stats(INSTRUMENT_IP)
     r_rate = ((stats_next.NTP_served - stats.NTP_served) / ((stats_next.ref_ts1 + stats_next.ref_ts0) - (stats.ref_ts1 + stats.ref_ts0)))
-    scale = r_rate / ((80-10)/2.0)
+    time_width = 9
+    rate_width = 10
+    scale = r_rate / ((80-time_width-rate_width)/2.0)
     rate_scaled = r_rate / scale
-    print("%.1f/s: " % (r_rate), end ="")
+    print("%s % 4.1f/s " % (strftime("%H:%M:%S", gmtime()), r_rate), end ="")
     while rate_scaled > 0:
       print("*", end ="")
       rate_scaled = rate_scaled - 1
@@ -85,12 +89,15 @@ elif args.graph:
       stats_last = stats_next
       try:
         stats_next = leontp_stats(INSTRUMENT_IP)
+      except KeyboardInterrupt:
+        print("exiting..")
+        break
       except:
         print("Request Failed")
         continue
       r_rate = ((stats_next.NTP_served - stats_last.NTP_served) / ((stats_next.ref_ts1 + stats_next.ref_ts0) - (stats_last.ref_ts1 + stats_last.ref_ts0)))
       rate_scaled = r_rate / scale
-      print("%.1f/s: " % (r_rate), end ="")
+      print("%s % 4.1f/s " % (strftime("%H:%M:%S", gmtime()), r_rate), end ="")
       while rate_scaled > 0:
         print("*", end ="")
         rate_scaled = rate_scaled - 1
