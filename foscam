@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import socket
+import struct
+from time import sleep
+
+port = 10000
+bufferSize = 1024
+
+pkt1 = b'\x4d\x4f\x5f\x49\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x01'
+pkt2 = b'\xb4\x9a\x70\x4d\x00'
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+s.bind(('<broadcast>', port))
+s.settimeout(1)
+
+while True:
+    print("Searching..")
+
+    s.sendto(pkt1, ('<broadcast>', port))
+    s.sendto(pkt2, ('<broadcast>', port))
+
+    foundCameras = list()
+
+    try:
+        while True:
+            msg, addr = s.recvfrom(bufferSize)
+            if msg != pkt1 and msg != pkt2:
+                mac_str = struct.unpack('12s', msg[23:35])[0].decode("utf-8") 
+                model_str = struct.unpack('7s', msg[36:43])[0].decode("utf-8") 
+                addr_bytes = struct.unpack('BBBB', msg[57:61])
+                nm_bytes = struct.unpack('BBBB', msg[61:65])
+                gw_bytes = struct.unpack('BBBB', msg[65:69])
+                gw_bytes = struct.unpack('BBBB', msg[69:73])
+                port_num = struct.unpack('>H', msg[74:76])[0]
+                serial = struct.unpack('22s', msg[86:108])
+                unknown = struct.unpack('4s', msg[121:125]) # BZZZ ??
+                if mac_str not in foundCameras:
+                    print(" - %s [%s] %d.%d.%d.%d:%d" % (model_str, mac_str, addr_bytes[0], addr_bytes[1], addr_bytes[2], addr_bytes[3], port_num))
+                    foundCameras.append(mac_str)
+    except socket.timeout:
+        continue
+    except Exception as e:
+        print(e)
+
+    sleep(1)
+
+
+#4d4f5f4901000000000000000000006a0000000000000030303632364536423432364200464939393030500000000000000000000000000000c0a8647affffff00c0a86401c0a8640102005800010101010101010100580159394b4b384538575339424e424145523131314100000000000000000000000000425a5a5a00000000
