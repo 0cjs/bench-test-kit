@@ -77,7 +77,11 @@ elif args.graph:
     r_rate = ((stats_next.NTP_served - stats.NTP_served) / ((stats_next.ref_ts1 + stats_next.ref_ts0) - (stats.ref_ts1 + stats.ref_ts0)))
     time_width = 9
     rate_width = 10
-    scale = r_rate / ((80-time_width-rate_width)/2.0)
+    if r_rate == 0:
+      # Avoid divide-by-zero for targets with low load
+      scale = 1 / ((80-time_width-rate_width)/2.0)
+    else:
+      scale = r_rate / ((80-time_width-rate_width)/2.0)
     rate_scaled = r_rate / scale
     print("%s % 4.1f/s " % (strftime("%H:%M:%S", gmtime()), r_rate), end ="")
     while rate_scaled > 0:
