@@ -18,8 +18,8 @@ def find_arp(INSTRUMENT_OUI):
                 return ipaddr_str
     return None
 
-def instrument_ping(instrument_ip):
-    if system("ping -c 1 %s > /dev/null" % (instrument_ip)) == 0:
+def instrument_ping(hostname):
+    if system("ping -c 1 %s > /dev/null" % (hostname)) == 0:
         return True
     else:
         return False
