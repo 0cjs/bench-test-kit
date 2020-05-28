@@ -74,20 +74,20 @@ def print_help():
     print ("    as a CSV, PNG or BMP file with a timestamp in the file name.")
     print ()
 
-def find_arp(oui):
-    result = subprocess.check_output("arp -n | grep '%s' | awk '{print $1}'" % (oui), shell=True)
-    result_string = result.decode("utf-8").strip()
-    if not result_string:
+def find_arp_or_die(oui):
+    ipaddr_str = find_arp(oui)
+    if ipaddr_str:
+        return ipaddr_str
+    else:
         print_help()
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
-    return result_string
 
 if len(sys.argv) == 1:
-    IP_DS1104Z = find_arp(RIGOL_OUI)
+    IP_DS1104Z = find_arp_or_die(RIGOL_OUI)
 elif len(sys.argv) == 2:
     if sys.argv[1].lower() in ["png", "bmp", "csv"]:
         file_format = sys.argv[1].lower()
-        IP_DS1104Z = find_arp(RIGOL_OUI)
+        IP_DS1104Z = find_arp_or_die(RIGOL_OUI)
     else:
         IP_DS1104Z = sys.argv[1]
 elif len(sys.argv) == 3:
