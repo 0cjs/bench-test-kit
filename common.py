@@ -9,11 +9,14 @@ from struct import unpack
 from time import localtime
 
 def find_arp(INSTRUMENT_OUI):
-    ipaddr_bytes = subprocess.check_output("arp -n | grep '%s' | awk '{print $1}'" % (INSTRUMENT_OUI), shell=True)
-    ipaddr_str = ipaddr_bytes.decode("utf-8").strip()
-    if not ipaddr_str:
-        return None
-    return ipaddr_str
+    with open('/proc/net/arp') as f:
+        f.readline()    # Drop header line
+        for line in f:
+            words = line.split()
+            ipaddr_str, hwaddr, = words[0], words[3]
+            if hwaddr.startswith(INSTRUMENT_OUI):
+                return ipaddr_str
+    return None
 
 def instrument_ping(instrument_ip):
     if system("ping -c 1 %s > /dev/null" % (instrument_ip)) == 0:
