@@ -38,12 +38,11 @@ timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
 filename = "DM3058_%s.bmp" % (timestamp)
 
 file_length = dm3058_screenshot(INSTRUMENT_IP, "%s/%s" % (filepath, filename))
+if not file_length:
+    sys.exit('Capture failed')
 
-if file_length is not None:
-    print("Saved screenshot to %s (%.1fKB)" % (filename, file_length/1024.0))
-    if args.preview:
-        image_preview(filename)
-    if args.imgur:
-        imgur_post(filename, "DM3058 Screen Capture")
-else:
-    print("Capture failed.")
+print("Saved screenshot to %s (%.1fKB)" % (filename, file_length/1024.0))
+if args.preview:
+    image_preview(filename)
+if args.imgur:
+    imgur_post(filename, "DM3058 Screen Capture")
