@@ -32,7 +32,7 @@ if len(sys.argv) == 1:
         print_help()
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
 elif len(sys.argv) == 2:
-	INSTRUMENT_IP = sys.argv[1]
+        INSTRUMENT_IP = sys.argv[1]
 else:
     print_help()
     sys.exit("Error: Wrong command line parameters.")
