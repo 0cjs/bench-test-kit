@@ -37,8 +37,7 @@ else:
     print_help()
     sys.exit("Error: Wrong command line parameters.")
 
-# Check network response (ping)
-if os.system("ping -c 1 " + INSTRUMENT_IP + " > /dev/null") != 0:
+if not instrument_ping(INSTRUMENT_IP):
     sys.exit("Error: No response pinging address " + INSTRUMENT_IP)
 
 tn = Telnet(INSTRUMENT_IP, INSTRUMENT_PORT)
