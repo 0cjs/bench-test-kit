@@ -2,7 +2,6 @@
 
 from rigol import *
 from common import *
-import time
 import sys
 import os
 import argparse
@@ -29,10 +28,7 @@ else:
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
 
 print("Capturing screenshot..")
-
-timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
-filename = "DM3058_%s.bmp" % (timestamp)
-
+filename = output_filename('DM3058', 'bmp')
 file_length = dm3058_screenshot(INSTRUMENT_IP, "%s/%s" % (filepath, filename))
 if not file_length:
     sys.exit('Capture failed')

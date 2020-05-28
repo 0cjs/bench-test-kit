@@ -3,7 +3,6 @@
 from telnetlib_receive_all import Telnet
 from rigol import *
 from common import *
-import time
 import sys
 import os
 
@@ -129,10 +128,7 @@ if (id_fields[company] != "RIGOL TECHNOLOGIES") or \
         sys.exit('Nothing done. Bye!')
 
 print("Found Instrument ID: %s" % (instrument_id))
-
-# Prepare filename as C:\MODEL_SERIAL_YYYY-MM-DD_HH.MM.SS
-timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
-filename = "%s/%s" % (os.getcwd(), id_fields[model] + "_" + timestamp + "." + file_format)
+filename = output_filename(id_fields[model], file_format)
 
 if file_format in ["png", "bmp"]:
     # Ask for an oscilloscope display print screen

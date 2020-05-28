@@ -3,7 +3,6 @@
 from telnetlib_receive_all import Telnet
 from keysight import *
 from common import *
-import time
 import sys
 import os
 
@@ -48,9 +47,7 @@ instrument_manufacturer,instrument_model,instrument_serial,instrument_fw = instr
 
 print("Found %s %s at %s" % (instrument_manufacturer, instrument_model, INSTRUMENT_IP))
 print("Downloading screenshot..")
-
-timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
-filename = "E36312A_%s.bmp" % (timestamp)
+filename = output_filename('E36312A', 'bmp')
 
 file_length = e36312a_screenshot(INSTRUMENT_IP, "%s/%s" % (filepath, filename))
 

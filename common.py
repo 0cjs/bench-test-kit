@@ -6,7 +6,21 @@ from json import loads
 
 import socket
 from struct import unpack
-from time import localtime
+from time import strftime, localtime
+
+def output_filename(devicestr, extension):
+    ''' Given a string representing the device name, generate an output
+        filename that includes that and a timestamp.
+
+        XXX This code current generates filenames with colons in them,
+        which will break on Windows.
+
+        XXX This does not, but probably should, check that it's not
+        generated the name of an existing file so we avoid overwriting it.
+    '''
+    timestamp = strftime("%Y-%m-%d_%H:%M:%S", localtime())
+    filename = "%s_%s.%s" % (devicestr, timestamp, extension)
+    return filename
 
 def find_arp(INSTRUMENT_OUI):
     with open('/proc/net/arp') as f:
