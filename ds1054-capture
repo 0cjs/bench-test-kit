@@ -140,9 +140,9 @@ if file_format in ["png", "bmp"]:
     print ("Receiving screen capture...")
 
     if file_format == "png":
-    	buff = command(tn, ":DISP:DATA? ON,OFF,PNG")
+        buff = command(tn, ":DISP:DATA? ON,OFF,PNG")
     else:
-    	buff = command(tn, ":DISP:DATA? ON,OFF,BMP8")
+        buff = command(tn, ":DISP:DATA? ON,OFF,BMP8")
 
     expectedBuffLen = expected_buff_bytes(buff)
     # Just in case the transfer did not complete in the expected time, read the remaining 'buff' chunks
@@ -162,7 +162,7 @@ if file_format in ["png", "bmp"]:
 
     # Write raw data to file
     with open(filename, 'wb') as f:
-    	f.write(buff)
+        f.write(buff)
     print('Saved screenshot to %s (%.1fKB)' % (filename, expectedDataLen/1024.0))
 
 # TODO: Change WAV:FORM from ASC to BYTE
