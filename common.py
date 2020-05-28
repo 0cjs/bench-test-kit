@@ -19,6 +19,11 @@ def find_arp(INSTRUMENT_OUI):
     return None
 
 def instrument_ping(hostname):
+    #   We can't do this directly in Python because root privileges
+    #   are (usually) required to generate ICMP requests. But it's not
+    #   clear why we bother with this, given that we can just try to
+    #   connect directly to the TCP port of interest and handle the
+    #   timeout or error from that in the same way.
     if system("ping -c 1 %s > /dev/null" % (hostname)) == 0:
         return True
     else:
