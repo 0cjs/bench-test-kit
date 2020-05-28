@@ -4,9 +4,13 @@ import requests
 RIGOL_OUI = "00:19:af"
 
 def dm3058_screenshot(instrument_ip, output_filename):
-    response = requests.head(
-        'http://%s/DM3058_WebControl.html' % (instrument_ip))
-    if response.status_code != 200:
+    try:
+        response = requests.head(
+            'http://%s/DM3058_WebControl.html' % (instrument_ip))
+        if response.status_code != 200:
+            return None
+    except requests.exceptions.ConnectionError as ex:
+        print(ex, file=sys.stderr)
         return None
 
     with open(output_filename, "wb") as f:

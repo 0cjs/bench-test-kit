@@ -28,10 +28,6 @@ else:
     if INSTRUMENT_IP is None:
         sys.exit("Error: Hardware address not found in ARP table, IP will have to be specified manually.")
 
-# Check network response (ping)
-if not instrument_ping(INSTRUMENT_IP):
-    sys.exit("Error: No response pinging address " + INSTRUMENT_IP)
-
 print("Capturing screenshot..")
 
 timestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
