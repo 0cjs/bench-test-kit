@@ -100,13 +100,14 @@ else:
     print_help()
     sys.exit("Error: Wrong command line parameters.")
 
-if not instrument_ping(IP_DS1104Z):
-    sys.exit("Error: No response pinging address " + IP_DS1104Z)
-
 # Open a modified telnet session
 # The default telnetlib drops 0x00 characters,
 #   so a modified library 'telnetlib_receive_all' is used instead
-tn = Telnet(IP_DS1104Z, port)
+try:
+    tn = Telnet(IP_DS1104Z, port)
+except OSError as ex:
+    sys.exit('Connection error: ' + str(ex))
+
 instrument_id = command(tn, "*IDN?").decode().rstrip()    # ask for instrument ID
 
 # Check if instrument is set to accept LAN commands

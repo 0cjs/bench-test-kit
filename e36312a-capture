@@ -37,10 +37,10 @@ else:
     print_help()
     sys.exit("Error: Wrong command line parameters.")
 
-if not instrument_ping(INSTRUMENT_IP):
-    sys.exit("Error: No response pinging address " + INSTRUMENT_IP)
-
-tn = Telnet(INSTRUMENT_IP, INSTRUMENT_PORT)
+try:
+    tn = Telnet(INSTRUMENT_IP, INSTRUMENT_PORT)
+except OSError as ex:
+    sys.exit('Connection error: ' + str(ex))
 instrument_id = command(tn, "*IDN?").decode().rstrip()
 tn.close()
 
